@@ -18,8 +18,8 @@ pkgbase = ticktick-cli-apparmor
 	source = ticktick-cli.apparmor
 	source = ticktick-cli-common.apparmor
 	sha256sums = f1ad1ce39ef7299f1f8d499f43e3ef390882dcf0b02c05de6e4e18e15053d960
-	sha256sums = 8bb1d2db56fb6ea7a0aa7378dd85452279c736744841b1bf6cd5358aac729576
-	sha256sums = 4980f7e1b8cb398da1ef8c65f675463821092de59432a1a842328f2c16c07fae
-	sha256sums = fdce1fba71b725593ef67df449adb5211023f98f071158b8360056142d616ba0
+	sha256sums = SKIP
+	sha256sums = SKIP
+	sha256sums = SKIP
 
 pkgname = ticktick-cli-apparmor

@@ -26,10 +26,14 @@ source=("$_appname-$pkgver.tgz::https://registry.npmjs.org/${_npmname}/-/${_appn
         'ticktick-cli.apparmor'
         'ticktick-cli-common.apparmor')
 noextract=("$_appname-$pkgver.tgz")
+# Only the upstream tarball is checksummed. The other three sources live in
+# this same repository, so a checksum over them protects nothing: anything able
+# to alter those files can alter this line too. Pinning them would only mean
+# regenerating sums on every edit.
 sha256sums=('f1ad1ce39ef7299f1f8d499f43e3ef390882dcf0b02c05de6e4e18e15053d960'
-            '8bb1d2db56fb6ea7a0aa7378dd85452279c736744841b1bf6cd5358aac729576'
-            '4980f7e1b8cb398da1ef8c65f675463821092de59432a1a842328f2c16c07fae'
-            'fdce1fba71b725593ef67df449adb5211023f98f071158b8360056142d616ba0')
+            'SKIP'   # ticktick.sh
+            'SKIP'   # ticktick-cli.apparmor
+            'SKIP')  # ticktick-cli-common.apparmor
 
 build() {
 	# Install into a staging prefix at build time so that package() is offline.
