@@ -59,12 +59,18 @@ package() {
 	# set it (directories and dist/index.js).
 	chmod -R u=rwX,go=rX "$pkgdir/usr"
 
-	# /usr/bin/ticktick is the only entry point: it picks one of the two
-	# AppArmor profiles based on the subcommand and then hands the script to
-	# bun. dist/index.js keeps a node shebang from
-	# upstream, so it is installed non-executable to make clear it is not meant
-	# to be run directly.
+	# dist/index.js keeps a node shebang from upstream, so it is installed
+	# non-executable to make clear it is not meant to be run directly.
 	chmod -x "$pkgdir/$_moddir/dist/index.js"
+
+	# /usr/bin/ticktick is the only entry point: it picks one of the two
+	# AppArmor profiles based on the subcommand, then hands the script to bun.
+	# Upstream's package.json declares two bin names, 'ticktick' and
+	# 'ticktick-cli', both pointing at that same script, so `npm install -g`
+	# gives you both. Mirror that. 'ticktick' is the primary one -- it is what
+	# commander prints in its usage line and what upstream's install
+	# instructions use -- so the alias is a symlink to it rather than a second
+	# copy of the wrapper.
 	install -Dm755 "$srcdir/ticktick.sh" "$pkgdir/usr/bin/ticktick"
 	ln -s ticktick "$pkgdir/usr/bin/${_appname}"
 
