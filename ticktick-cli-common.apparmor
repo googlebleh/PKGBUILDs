@@ -15,8 +15,10 @@
 	/usr/lib/bun/{,**}                                  mr,
 
 	# bun probes CPU topology and its own memory map during startup
-	@{PROC}/@{pid}/{maps,stat,statm,status}             r,
+	@{PROC}/@{pid}/{maps,stat,statm,status,cgroup}      r,
+	@{PROC}/version                                     r,
 	@{PROC}/sys/vm/overcommit_memory                    r,
+	@{PROC}/sys/vm/mmap_min_addr                        r,
 	@{PROC}/sys/kernel/osrelease                        r,
 	/sys/devices/system/cpu/{,**}                       r,
 	/sys/kernel/mm/transparent_hugepage/{,**}           r,
@@ -31,6 +33,29 @@
 	owner @{HOME}/.config/                              rw,
 	owner @{HOME}/.config/ticktick-cli/                 rw,
 	owner @{HOME}/.config/ticktick-cli/**               rwkl,
+
+	# --- the module resolution walk ---------------------------------------
+	# bun looks for node_modules/ and bunfig.toml in every directory above
+	# both the script and the current working directory. None of that is
+	# needed -- the dependencies are nested inside the package itself -- but
+	# each probe is an unmatched read and so gets audited, which buried the
+	# real denials in hundreds of lines of noise.
+	#
+	# These are reads of directories, i.e. listing their contents, which the
+	# tool has no business doing. An explicit deny refuses them exactly as
+	# before while suppressing the audit record. Note the trailing slash:
+	# these match directories only, so config.json and the package's own
+	# files are untouched, and 'w' is not denied, so writeConfig() can still
+	# create ~/.config/ticktick-cli/.
+	deny /                                              r,
+	deny /{home,usr,tmp,var,opt,etc,srv,mnt,media,run}/ r,
+	deny /usr/lib/                                      r,
+	deny @{HOME}/                                       r,
+	# The home-subtree rule deliberately excludes dot-directories, so that
+	# ~/.config/ticktick-cli/ is never caught by it: writeConfig() calls
+	# mkdir(recursive) on that path, and it is not worth risking a stat
+	# against a deny rule to silence a line of log noise.
+	deny @{HOME}/[^.]**/                                r,
 
 	# --- explicit denials -------------------------------------------------
 	# Nothing above grants these. Denying them outright documents the intent

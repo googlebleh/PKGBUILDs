@@ -4,7 +4,7 @@ pkgname=ticktick-cli-apparmor
 _appname=ticktick-cli
 _npmname=@ticktick/ticktick-cli
 pkgver=0.1.14
-pkgrel=1
+pkgrel=2
 pkgdesc='Command-line interface for TickTick, running on bun under AppArmor confinement'
 arch=('any')
 url='https://www.npmjs.com/package/@ticktick/ticktick-cli'
@@ -29,7 +29,7 @@ noextract=("$_appname-$pkgver.tgz")
 sha256sums=('f1ad1ce39ef7299f1f8d499f43e3ef390882dcf0b02c05de6e4e18e15053d960'
             '8bb1d2db56fb6ea7a0aa7378dd85452279c736744841b1bf6cd5358aac729576'
             '4980f7e1b8cb398da1ef8c65f675463821092de59432a1a842328f2c16c07fae'
-            '941e0061eeb2871a54dabd82de639cd3723948672c32701fc6712917318e2032')
+            'fdce1fba71b725593ef67df449adb5211023f98f071158b8360056142d616ba0')
 
 build() {
 	# Install into a staging prefix at build time so that package() is offline.
