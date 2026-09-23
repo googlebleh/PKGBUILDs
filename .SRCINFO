@@ -1,14 +1,23 @@
-pkgbase = ticktick-cli
-	pkgdesc = Command-line interface for TickTick
+pkgbase = ticktick-cli-apparmor
+	pkgdesc = Command-line interface for TickTick, running on bun under an AppArmor profile
 	pkgver = 0.1.14
 	pkgrel = 1
 	url = https://www.npmjs.com/package/@ticktick/ticktick-cli
+	install = ticktick-cli-apparmor.install
 	arch = any
 	license = MIT
 	makedepends = npm
-	depends = nodejs
+	depends = bun
+	depends = apparmor
+	depends = xdg-utils
+	provides = ticktick-cli=0.1.14
+	conflicts = ticktick-cli
 	noextract = ticktick-cli-0.1.14.tgz
 	source = ticktick-cli-0.1.14.tgz::https://registry.npmjs.org/@ticktick/ticktick-cli/-/ticktick-cli-0.1.14.tgz
+	source = ticktick.sh
+	source = ticktick-cli.apparmor
 	sha256sums = f1ad1ce39ef7299f1f8d499f43e3ef390882dcf0b02c05de6e4e18e15053d960
+	sha256sums = ae27f8e5b2a8e4f51ac01ee1559e2cee4b7170f1706f6eb4ced8f8c54a6076a2
+	sha256sums = 5d930f54f2dab86cfdcc128cc12c520ae166589e6f50ea7dc21ea73e1c8f6d42
 
-pkgname = ticktick-cli
+pkgname = ticktick-cli-apparmor

@@ -2,3 +2,6 @@
 !.gitignore
 !.SRCINFO
 !PKGBUILD
+!ticktick.sh
+!ticktick-cli.apparmor
+!ticktick-cli-apparmor.install

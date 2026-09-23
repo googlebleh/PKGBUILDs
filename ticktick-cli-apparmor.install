@@ -1,0 +1,29 @@
+_reload_profile() {
+	# Profiles in /etc/apparmor.d are loaded by apparmor.service at boot; load
+	# it now as well so the package works without a reboot. Skipped when
+	# AppArmor is not enabled in the running kernel.
+	[ -d /sys/kernel/security/apparmor ] || return 0
+	apparmor_parser -r -T -W /etc/apparmor.d/ticktick-cli >/dev/null 2>&1 || true
+}
+
+post_install() {
+	_reload_profile
+	cat <<'EOF'
+  ticktick is confined by the AppArmor profile 'ticktick-cli'.
+
+  AppArmor must be enabled in the kernel for the command to run:
+    sudo systemctl enable --now apparmor.service
+  and lsm=...,apparmor on the kernel command line.
+
+  Check the profile is loaded with:  aa-status | grep ticktick-cli
+EOF
+}
+
+post_upgrade() {
+	_reload_profile
+}
+
+pre_remove() {
+	[ -d /sys/kernel/security/apparmor ] || return 0
+	apparmor_parser -R /etc/apparmor.d/ticktick-cli >/dev/null 2>&1 || true
+}
