@@ -1,0 +1,41 @@
+# Shared rules for the ticktick-cli AppArmor profiles.
+#
+# Included by both 'ticktick-cli' and 'ticktick-cli-login', which are defined
+# in /etc/apparmor.d/ticktick-cli. Everything a normal invocation needs lives
+# here; the two profiles differ only in what they add on top.
+
+	include <abstractions/base>
+	include <abstractions/consoles>
+	include <abstractions/nameservice>
+	include <abstractions/openssl>
+	include <abstractions/ssl_certs>
+
+	# --- bun runtime ---------------------------------------------------
+	/usr/bin/bun                                        mr,
+	/usr/lib/bun/{,**}                                  mr,
+
+	# bun probes CPU topology and its own memory map during startup
+	@{PROC}/@{pid}/{maps,stat,statm,status}             r,
+	@{PROC}/sys/vm/overcommit_memory                    r,
+	@{PROC}/sys/kernel/osrelease                        r,
+	/sys/devices/system/cpu/{,**}                       r,
+	/sys/kernel/mm/transparent_hugepage/{,**}           r,
+
+	# --- the CLI and its bundled dependencies ---------------------------
+	/usr/lib/node_modules/@ticktick/ticktick-cli/{,**}  r,
+
+	# --- configuration and OAuth token ----------------------------------
+	# config.json stores the access token. This is the only part of $HOME
+	# either profile can reach. Write access on .config/ itself is needed
+	# so the ticktick-cli/ directory can be created on first run.
+	owner @{HOME}/.config/                              rw,
+	owner @{HOME}/.config/ticktick-cli/                 rw,
+	owner @{HOME}/.config/ticktick-cli/**               rwkl,
+
+	# --- explicit denials -------------------------------------------------
+	# Nothing above grants these. Denying them outright documents the intent
+	# and keeps stray probes out of the audit log.
+	deny @{HOME}/.ssh/{,**}                             rwxlk,
+	deny @{HOME}/.gnupg/{,**}                           rwxlk,
+	deny @{HOME}/.bun/{,**}                             rwxlk,
+	deny @{HOME}/{,.}bunfig.toml                        r,

@@ -5,3 +5,4 @@
 !ticktick.sh
 !ticktick-cli.apparmor
 !ticktick-cli-apparmor.install
+!ticktick-cli-common.apparmor

@@ -1,63 +1,46 @@
-# AppArmor profile for ticktick-cli running under the bun runtime.
+# AppArmor profiles for ticktick-cli running under the bun runtime.
 #
-# This profile deliberately carries no attachment path. It is applied
-# explicitly by /usr/bin/ticktick via `aa-exec -p ticktick-cli`, which keeps
-# that wrapper the single entry point and avoids attaching anything to the
-# shared /usr/bin/bun binary.
+# Two profiles, selected by /usr/bin/ticktick on the command line. Neither
+# carries an attachment path on purpose: they are applied explicitly with
+# `aa-exec -p`, which keeps the wrapper the single entry point and avoids
+# attaching anything to the shared /usr/bin/bun binary.
+#
+# Shared rules live in abstractions/ticktick-cli.
 
 abi <abi/4.0>,
 
 include <tunables/global>
 
+# Everyday profile: every subcommand except `auth login`.
+#
+# `open` is imported in exactly one place upstream (commands/auth.js, reached
+# only from `auth login`) and nothing else in the CLI spawns a process, so
+# this profile carries no exec rule at all and cannot start any program.
 profile ticktick-cli {
-	include <abstractions/base>
-	include <abstractions/consoles>
-	include <abstractions/nameservice>
-	include <abstractions/openssl>
-	include <abstractions/ssl_certs>
+	include <abstractions/ticktick-cli>
 
-	# --- bun runtime ---------------------------------------------------
-	/usr/bin/bun                                        mr,
-	/usr/lib/bun/{,**}                                  mr,
+	# abstractions/nameservice grants blanket 'network inet stream' because
+	# it needs TCP for DNS, and that would otherwise permit a listening
+	# socket. deny overrides allow in AppArmor, so this pins the everyday
+	# profile to outbound connections only: it can reach api.ticktick.com
+	# but cannot open a port.
+	deny network (bind,listen,accept) inet  stream,
+	deny network (bind,listen,accept) inet6 stream,
+}
 
-	# bun probes CPU topology and its own memory map during startup
-	@{PROC}/@{pid}/{maps,stat,statm,status}             r,
-	@{PROC}/sys/vm/overcommit_memory                    r,
-	@{PROC}/sys/kernel/osrelease                        r,
-	/sys/devices/system/cpu/{,**}                       r,
-	/sys/kernel/mm/transparent_hugepage/{,**}           r,
+# Profile for `ticktick auth login` only.
+#
+# Two extra powers, both needed solely by the OAuth flow, and both denied to
+# every other invocation by the profile above.
+profile ticktick-cli-login {
+	include <abstractions/ticktick-cli>
 
-	# --- the CLI and its bundled dependencies ---------------------------
-	/usr/lib/node_modules/@ticktick/ticktick-cli/{,**}  r,
-
-	# --- configuration and OAuth token ----------------------------------
-	# config.json stores the access token. This is the only part of $HOME
-	# the tool can reach. Write access on .config/ itself is needed so the
-	# ticktick-cli/ directory can be created on first run.
-	owner @{HOME}/.config/                              rw,
-	owner @{HOME}/.config/ticktick-cli/                 rw,
-	owner @{HOME}/.config/ticktick-cli/**               rwkl,
-
-	# --- network ---------------------------------------------------------
-	# HTTPS to ticktick.com and api.ticktick.com, plus the short-lived
-	# loopback listener on port 8765 that catches the OAuth redirect during
-	# `ticktick auth login`.
-	network inet  stream,
-	network inet6 stream,
-
-	# --- browser hand-off -------------------------------------------------
-	# `ticktick auth login` shells out to xdg-open to open the consent page.
-	# It runs unconfined (Ux) so the browser it spawns is not dragged into
-	# this profile. This is the one deliberate gap in the confinement;
-	# whatever the browser does afterwards is governed by the browser's own
-	# profile, if it has one.
+	# 1. The consent page is handed to the browser through xdg-open, which
+	#    runs unconfined so the browser is not dragged into this profile.
+	#    This is the one exec this package ever performs.
 	/usr/bin/xdg-open                                   Ux,
 
-	# --- explicit denials --------------------------------------------------
-	# Nothing above grants these. Denying them outright documents the intent
-	# and keeps stray probes out of the audit log.
-	deny @{HOME}/.ssh/{,**}                             rwxlk,
-	deny @{HOME}/.gnupg/{,**}                           rwxlk,
-	deny @{HOME}/.bun/{,**}                             rwxlk,
-	deny @{HOME}/{,.}bunfig.toml                        r,
+	# 2. startCallbackServer() listens on 127.0.0.1:8765 for up to three
+	#    minutes to catch the OAuth redirect, so bind/listen/accept are
+	#    left in place here rather than denied.
 }

@@ -5,7 +5,7 @@ _appname=ticktick-cli
 _npmname=@ticktick/ticktick-cli
 pkgver=0.1.14
 pkgrel=1
-pkgdesc='Command-line interface for TickTick, running on bun under an AppArmor profile'
+pkgdesc='Command-line interface for TickTick, running on bun under AppArmor confinement'
 arch=('any')
 url='https://www.npmjs.com/package/@ticktick/ticktick-cli'
 license=('MIT')
@@ -23,11 +23,13 @@ install="$pkgname.install"
 # only resolves the runtime dependencies into a staging prefix.
 source=("$_appname-$pkgver.tgz::https://registry.npmjs.org/${_npmname}/-/${_appname}-${pkgver}.tgz"
         'ticktick.sh'
-        'ticktick-cli.apparmor')
+        'ticktick-cli.apparmor'
+        'ticktick-cli-common.apparmor')
 noextract=("$_appname-$pkgver.tgz")
 sha256sums=('f1ad1ce39ef7299f1f8d499f43e3ef390882dcf0b02c05de6e4e18e15053d960'
-            'ae27f8e5b2a8e4f51ac01ee1559e2cee4b7170f1706f6eb4ced8f8c54a6076a2'
-            '5d930f54f2dab86cfdcc128cc12c520ae166589e6f50ea7dc21ea73e1c8f6d42')
+            '8bb1d2db56fb6ea7a0aa7378dd85452279c736744841b1bf6cd5358aac729576'
+            '4980f7e1b8cb398da1ef8c65f675463821092de59432a1a842328f2c16c07fae'
+            '941e0061eeb2871a54dabd82de639cd3723948672c32701fc6712917318e2032')
 
 build() {
 	# Install into a staging prefix at build time so that package() is offline.
@@ -57,8 +59,9 @@ package() {
 	# set it (directories and dist/index.js).
 	chmod -R u=rwX,go=rX "$pkgdir/usr"
 
-	# /usr/bin/ticktick is the only entry point: it enters the AppArmor profile
-	# and then hands the script to bun. dist/index.js keeps a node shebang from
+	# /usr/bin/ticktick is the only entry point: it picks one of the two
+	# AppArmor profiles based on the subcommand and then hands the script to
+	# bun. dist/index.js keeps a node shebang from
 	# upstream, so it is installed non-executable to make clear it is not meant
 	# to be run directly.
 	chmod -x "$pkgdir/$_moddir/dist/index.js"
@@ -66,6 +69,8 @@ package() {
 	ln -s ticktick "$pkgdir/usr/bin/${_appname}"
 
 	install -Dm644 "$srcdir/ticktick-cli.apparmor" "$pkgdir/etc/apparmor.d/ticktick-cli"
+	install -Dm644 "$srcdir/ticktick-cli-common.apparmor" \
+		"$pkgdir/etc/apparmor.d/abstractions/ticktick-cli"
 
 	install -Dm644 "$srcdir/staging/$_moddir/README.md" \
 		-t "$pkgdir/usr/share/doc/$pkgname"

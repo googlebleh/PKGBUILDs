@@ -9,7 +9,8 @@ _reload_profile() {
 post_install() {
 	_reload_profile
 	cat <<'EOF'
-  ticktick is confined by the AppArmor profile 'ticktick-cli'.
+  ticktick is confined by AppArmor: profile 'ticktick-cli' for everyday use,
+  'ticktick-cli-login' for `ticktick auth login` (browser + OAuth listener).
 
   AppArmor must be enabled in the kernel for the command to run:
     sudo systemctl enable --now apparmor.service
