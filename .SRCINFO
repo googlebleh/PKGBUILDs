@@ -1,0 +1,14 @@
+pkgbase = ticktick-cli
+	pkgdesc = Command-line interface for TickTick
+	pkgver = 0.1.14
+	pkgrel = 1
+	url = https://www.npmjs.com/package/@ticktick/ticktick-cli
+	arch = any
+	license = MIT
+	makedepends = npm
+	depends = nodejs
+	noextract = ticktick-cli-0.1.14.tgz
+	source = ticktick-cli-0.1.14.tgz::https://registry.npmjs.org/@ticktick/ticktick-cli/-/ticktick-cli-0.1.14.tgz
+	sha256sums = f1ad1ce39ef7299f1f8d499f43e3ef390882dcf0b02c05de6e4e18e15053d960
+
+pkgname = ticktick-cli
