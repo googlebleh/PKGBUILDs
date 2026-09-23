@@ -1,8 +1,25 @@
-*
-!.gitignore
-!.SRCINFO
-!PKGBUILD
-!ticktick.sh
-!ticktick-cli.apparmor
-!ticktick-cli-apparmor.install
-!ticktick-cli-common.apparmor
+# One directory per package. The old single-package whitelist ("*" plus a
+# "!name" line per file) does not scale to that layout, so build artifacts are
+# blacklisted instead and new package directories are picked up automatically.
+
+# makepkg build artifacts
+*.pkg.tar*
+*.src.tar*
+*.log
+src/
+pkg/
+
+# Downloaded sources
+*.tgz
+*.tar.gz
+*.tar.xz
+*.tar.bz2
+*.tar.zst
+*.zip
+*.deb
+*.rpm
+*.AppImage
+
+# Signatures
+*.sig
+*.asc
